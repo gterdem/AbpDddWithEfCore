@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AbpDddWithEfCore.Blogs;
+using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.EntityFrameworkCore.Modeling;
 using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.Identity;
 using Volo.Abp.Identity.EntityFrameworkCore;
@@ -51,6 +53,8 @@ public class AbpDddWithEfCoreDbContext :
     public DbSet<TenantConnectionString> TenantConnectionStrings { get; set; }
 
     #endregion
+    
+    public virtual DbSet<Blog> Blogs { get; set; }
 
     public AbpDddWithEfCoreDbContext(DbContextOptions<AbpDddWithEfCoreDbContext> options)
         : base(options)
@@ -75,11 +79,21 @@ public class AbpDddWithEfCoreDbContext :
 
         /* Configure your own tables/entities inside here */
 
-        //builder.Entity<YourEntity>(b =>
-        //{
-        //    b.ToTable(AbpDddWithEfCoreConsts.DbTablePrefix + "YourEntities", AbpDddWithEfCoreConsts.DbSchema);
-        //    b.ConfigureByConvention(); //auto configure for the base class props
-        //    //...
-        //});
+        builder.Entity<Blog>(b =>
+        {
+            b.ToTable(AbpDddWithEfCoreConsts.DbTablePrefix + "Blogs", AbpDddWithEfCoreConsts.DbSchema);
+            b.ConfigureByConvention(); //auto configure for the base class props
+            b.Property(q => q.Name).IsRequired().HasMaxLength(BlogConstants.BlogNameMaxLength);
+            
+            b.HasMany(q => q.Posts).WithOne().HasForeignKey(q => q.BlogId).IsRequired();
+            b.Metadata.FindNavigation(nameof(Blog.Posts))?.SetPropertyAccessMode(PropertyAccessMode.Field);
+        });
+
+        builder.Entity<Post>(b =>
+        {
+            b.ToTable(AbpDddWithEfCoreConsts.DbTablePrefix + "Posts", AbpDddWithEfCoreConsts.DbSchema);
+            b.ConfigureByConvention(); //auto configure for the base class props
+            b.Property(q => q.Name).IsRequired().HasMaxLength(BlogConstants.PostNameMaxLength);
+        });
     }
 }
