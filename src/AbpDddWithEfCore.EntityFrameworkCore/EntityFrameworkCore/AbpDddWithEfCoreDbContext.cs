@@ -1,4 +1,5 @@
-﻿using AbpDddWithEfCore.Blogs;
+﻿using System;
+using AbpDddWithEfCore.Blogs;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
@@ -85,8 +86,10 @@ public class AbpDddWithEfCoreDbContext :
             b.ConfigureByConvention(); //auto configure for the base class props
             b.Property(q => q.Name).IsRequired().HasMaxLength(BlogConstants.BlogNameMaxLength);
             
-            b.HasMany(q => q.Posts).WithOne().HasForeignKey(q => q.BlogId).IsRequired();
             b.Metadata.FindNavigation(nameof(Blog.Posts))?.SetPropertyAccessMode(PropertyAccessMode.Field);
+            
+            // Not needed. EFCore can automatically detect Foreign key from name convention
+            // b.HasMany(q => q.Posts).WithOne().HasForeignKey("BlogId").IsRequired();
         });
 
         builder.Entity<Post>(b =>
@@ -94,6 +97,7 @@ public class AbpDddWithEfCoreDbContext :
             b.ToTable(AbpDddWithEfCoreConsts.DbTablePrefix + "Posts", AbpDddWithEfCoreConsts.DbSchema);
             b.ConfigureByConvention(); //auto configure for the base class props
             b.Property(q => q.Name).IsRequired().HasMaxLength(BlogConstants.PostNameMaxLength);
+            b.Property<Guid>("BlogId").IsRequired();
         });
     }
 }

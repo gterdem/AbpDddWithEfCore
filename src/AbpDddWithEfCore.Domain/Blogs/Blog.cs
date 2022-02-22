@@ -16,7 +16,6 @@ public class Blog : AggregateRoot<Guid>
 
     private Blog()
     {
-        _posts = new Collection<Post>();
     }
 
     public Blog(Guid id, [NotNull] string name) : base(id)
@@ -26,7 +25,7 @@ public class Blog : AggregateRoot<Guid>
 
     public Blog AddPost(Guid postId, string name, Guid? tenantId = null)
     {
-        var post = new Post(id: postId, blogId: Id, name: name, tenantId: tenantId);
+        var post = new Post(id: postId, name: name, tenantId: tenantId);
         _posts.AddIfNotContains(post);
         return this;
     }
